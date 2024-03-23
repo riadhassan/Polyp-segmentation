@@ -67,9 +67,9 @@ def main(conf):
     for epoch in tqdm(range(conf.epoch_num)):
         print("\n {epc} is running".format(epc=epoch))
         result = {"dice":[], "hd":[], "iou":[], "asd":[], "assd":[]}
-        img_print = random.randint(500, 600)
+        img_print = 1 #random.randint(500, 600)
 
-        for phase in ['valid']:
+        for phase in ["train", 'valid']:
             if phase == "train":
                 model.train()
             else:
@@ -78,7 +78,6 @@ def main(conf):
             for i, data in enumerate(loaders[phase]):
                 x, y_true, file_name = data
                 x, y_true = x.to(device), y_true.to(device)
-                print(x.shape)
                 optimizer.zero_grad()
 
                 with torch.set_grad_enabled(phase == "train"):
@@ -105,7 +104,6 @@ def main(conf):
                         result["asd"].append(asd.item())
                         result["assd"].append(assd.item())
 
-                        print(result)
 
                         if i % img_print == 0:
                             y_pred_np = y_pred.detach().cpu().numpy().squeeze()
@@ -128,29 +126,32 @@ def main(conf):
                         loss_train.append(loss)
                         loss.backward()
                         optimizer.step()
+        print(result)
+
         average_result = {}
         for metric in result.keys():
             data = result[metric]
             average_result[metric] = sum(data)/len(data)
 
-        print(f"Epoch: {epoch} Evaluation of {conf.model_name} Validate ")
+        print(average_result)
 
-        if epoch < 1:
-            prev_mean_dice = 0
 
-        curr_mean_dice = torch.mean(average_result["dice"])
-        model_name = f"{conf.model_name}_epoch_{epoch}.pth"
-        checkpoint_file = os.path.join(output_directory, "Model", model_name)
-        if curr_mean_dice > prev_mean_dice:
-            torch.save({
-                'epoch': epoch,
-                'model_state_dict': model.state_dict(),
-                'optimizer_state_dict': optimizer.state_dict(),
-                'loss': loss,
-            }, checkpoint_file)
-            prev_mean_dice = curr_mean_dice
-        else:
-            continue
+        # if epoch < 1:
+        #     prev_mean_dice = 0
+        #
+        # curr_mean_dice = average_result["dice"]
+        # model_name = f"{conf.model_name}_epoch_{epoch}.pth"
+        # checkpoint_file = os.path.join(output_directory, "Model", model_name)
+        # if curr_mean_dice > prev_mean_dice:
+        #     torch.save({
+        #         'epoch': epoch,
+        #         'model_state_dict': model.state_dict(),
+        #         'optimizer_state_dict': optimizer.state_dict(),
+        #         'loss': loss,
+        #     }, checkpoint_file)
+        #     prev_mean_dice = curr_mean_dice
+        # else:
+        #     continue
 
 if __name__ == "__main__":
     main(conf())

@@ -33,9 +33,6 @@ class OrganSegmentationDataset(Dataset):
         self.image_paths = glob.glob(self.images_dir + os.sep + "*.png")
         self.masks_paths = glob.glob(self.masks_dir + os.sep + "*.png")
 
-        print(self.image_paths)
-        print(self.masks_paths)
-
         assert len(self.image_paths) == len(self.masks_paths)
 
         print("reading {} images...".format(subset))
@@ -52,10 +49,10 @@ class OrganSegmentationDataset(Dataset):
 
         mask = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
         _, mask = cv2.threshold(mask, 70, 1, cv2.THRESH_BINARY)
-        mask = np.array(Image.fromarray(mask, 'L').resize((image_size, image_size), Image.Resampling.BILINEAR).transpose(Image.Transpose.TRANSPOSE))
+        mask = np.array(Image.fromarray(mask, 'L').resize((image_size, image_size), Image.Resampling.BILINEAR))
 
         image = cv2.imread(file_path)
-        image = np.array(Image.fromarray(image, 'RGB').resize((image_size, image_size), Image.Resampling.BILINEAR).transpose(Image.Transpose.TRANSPOSE))
+        image = np.array(Image.fromarray(image, 'RGB').resize((image_size, image_size), Image.Resampling.BILINEAR))
         image = image.transpose(2, 0, 1)
 
         # image, mask = augment_image_label(np.squeeze(image), np.squeeze(mask), 256,
